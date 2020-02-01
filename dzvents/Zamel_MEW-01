@@ -1,1 +1,89 @@
-#
+return {
+        active = true,
+        on = {
+                timer = { 'every minute' },
+                httpResponses = { 'SuplaRetrieved' } -- matches callback string below
+        },
+        
+            logging =   {   level     =   domoticz.LOG_DEBUG,
+                            marker    =   "supla"    },        
+        
+        execute = function(dz, item)
+
+            if (item.isTimer) then
+                 dz.openURL({
+                         --url = 'https://svr28.supla.org/direct/xxx/read', --Supla url
+                         method = 'GET',
+                         callback = 'SuplaRetrieved'
+                 })
+                
+            elseif (item.isHTTPResponse) then
+                if (item.ok and item.isJSON) then -- statusCode == 2xx
+
+
+--[[
+                        dz.log("phases[1].number: " .. item.json.phases[1].number, dz.LOG_DEBUG )
+                        dz.log("phases[2].frequency: " .. item.json.phases[1].frequency, dz.LOG_DEBUG )
+                        dz.log("phases[3].voltage: " .. item.json.phases[1].voltage, dz.LOG_DEBUG )
+                        dz.log("phases[4].current: " .. item.json.phases[1].current, dz.LOG_DEBUG )
+                        dz.log("phases[5].powerActive: " .. item.json.phases[1].powerActive, dz.LOG_DEBUG )
+                        dz.log("phases[6].powerReactive: " .. item.json.phases[1].powerReactive, dz.LOG_DEBUG )
+                        dz.log("phases[7].powerApparent: " .. item.json.phases[1].powerApparent, dz.LOG_DEBUG )
+                        dz.log("phases[8].totalForwardActiveEnergy: " .. item.json.phases[1].totalForwardActiveEnergy, dz.LOG_DEBUG )
+                        dz.log("phases[9].totalReverseActiveEnergy: " .. item.json.phases[1].totalReverseActiveEnergy, dz.LOG_DEBUG )
+                        dz.log("phases[10].totalForwardReactiveEnergy: " .. item.json.phases[1].totalForwardReactiveEnergy, dz.LOG_DEBUG )
+                        dz.log("phases[11].totalReverseReactiveEnergy: " .. item.json.phases[1].totalReverseReactiveEnergy, dz.LOG_DEBUG )
+                        
+                        dz.log("phases[1].number: " .. item.json.phases[2].number, dz.LOG_DEBUG )
+                        dz.log("phases[2].frequency: " .. item.json.phases[2].frequency, dz.LOG_DEBUG )
+                        dz.log("phases[3].voltage: " .. item.json.phases[2].voltage, dz.LOG_DEBUG )
+                        dz.log("phases[4].current: " .. item.json.phases[2].current, dz.LOG_DEBUG )
+                        dz.log("phases[5].powerActive: " .. dz.utils.round(item.json.phases[2].powerActive, dz.LOG_DEBUG ),0)
+                        dz.log("phases[6].powerReactive: " .. item.json.phases[2].powerReactive, dz.LOG_DEBUG )
+                        dz.log("phases[7].powerApparent: " .. item.json.phases[2].powerApparent, dz.LOG_DEBUG )
+                        dz.log("phases[8].totalForwardActiveEnergy: " .. item.json.phases[2].totalForwardActiveEnergy, dz.LOG_DEBUG )
+                        dz.log("phases[9].totalReverseActiveEnergy: " .. item.json.phases[2].totalReverseActiveEnergy, dz.LOG_DEBUG )
+                        dz.log("phases[10].totalForwardReactiveEnergy: " .. item.json.phases[2].totalForwardReactiveEnergy, dz.LOG_DEBUG )
+                        dz.log("phases[11].totalReverseReactiveEnergy: " .. item.json.phases[2].totalReverseReactiveEnergy, dz.LOG_DEBUG )
+                        
+                        dz.log("phases[1].number: " .. item.json.phases[3].number, dz.LOG_DEBUG )
+                        dz.log("phases[2].frequency: " .. item.json.phases[3].frequency, dz.LOG_DEBUG )
+                        dz.log("phases[3].voltage: " .. item.json.phases[3].voltage, dz.LOG_DEBUG )
+                        dz.log("phases[4].current: " .. item.json.phases[3].current, dz.LOG_DEBUG )
+                        dz.log("phases[5].powerActive: " .. item.json.phases[3].powerActive, dz.LOG_DEBUG )
+                        dz.log("phases[6].powerReactive: " .. item.json.phases[3].powerReactive, dz.LOG_DEBUG )
+                        dz.log("phases[7].powerApparent: " .. item.json.phases[3].powerApparent, dz.LOG_DEBUG )
+                        dz.log("phases[8].totalForwardActiveEnergy: " .. item.json.phases[3].totalForwardActiveEnergy, dz.LOG_DEBUG )
+                        dz.log("phases[9].totalReverseActiveEnergy: " .. item.json.phases[3].totalReverseActiveEnergy, dz.LOG_DEBUG )
+                        dz.log("phases[10].totalForwardReactiveEnergy: " .. item.json.phases[3].totalForwardReactiveEnergy, dz.LOG_DEBUG )
+                        dz.log("phases[11].totalReverseReactiveEnergy: " .. item.json.phases[3].totalReverseReactiveEnergy, dz.LOG_DEBUG )
+]]--
+                        
+local sum_power = ( item.json.phases[1].powerActive + item.json.phases[2].powerActive + item.json.phases[3].powerActive )
+local sum_current = ( item.json.phases[1].current + item.json.phases[2].current + item.json.phases[3].current )
+local sum_energy = (( item.json.phases[1].totalForwardActiveEnergy + item.json.phases[2].totalForwardActiveEnergy + item.json.phases[3].totalForwardActiveEnergy )*1000)
+                        
+                    dz.devices('supla 1 volt').updateVoltage(item.json.phases[1].voltage)
+                    dz.devices('supla 1 current').updateCurrent(item.json.phases[1].current)
+                    dz.devices('supla 1 kWh').updateElectricity(item.json.phases[1].powerActive,item.json.phases[1].totalForwardActiveEnergy*1000)
+                    
+                    dz.devices('supla 2 volt').updateVoltage(item.json.phases[2].voltage)
+                    dz.devices('supla 2 current').updateCurrent(item.json.phases[2].current)
+                    dz.devices('supla 2 kWh').updateElectricity(item.json.phases[2].powerActive,item.json.phases[2].totalForwardActiveEnergy*1000)
+                    
+                    dz.devices('supla 3 volt').updateVoltage(item.json.phases[3].voltage)
+                    dz.devices('supla 3 current').updateCurrent(item.json.phases[3].current)
+                    dz.devices('supla 3 kWh').updateElectricity(item.json.phases[3].powerActive,item.json.phases[3].totalForwardActiveEnergy*1000)
+                                              
+                    dz.devices('supla current all').updateCurrent(item.json.phases[1].current,item.json.phases[2].current,item.json.phases[3].current)
+                    dz.devices('supla kWh all').updateElectricity(sum_power,sum_energy)
+                    dz.devices('supla current sum').updateCurrent(sum_current)                
+                        
+                else
+                    -- oops
+                    dz.log('Error fetching Supla data', dz.LOG_ERROR)
+                    dz.log(item.data, dz.LOG_ERROR)
+                end
+            end
+        end
+}
