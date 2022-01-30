@@ -6,7 +6,7 @@ return {
         },
         
             logging =   {   level     =   domoticz.LOG_DEBUG,
-                            marker    =   "supla"    },        
+                            marker    =   "supla MEW-01"    },        
         
         execute = function(dz, item)
 
